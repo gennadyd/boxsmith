@@ -7,4 +7,5 @@ kernel_packages:
   - "kernel-modules-{{ kernel_name }}"
   - "kernel-modules-core-{{ kernel_name }}"
   - "kernel-devel-{{ kernel_name }}"
+
   - "kernel-headers-{{ kernel_name }}"

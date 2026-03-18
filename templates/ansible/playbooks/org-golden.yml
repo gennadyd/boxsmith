@@ -58,4 +58,3 @@
       when: ansible_os_family != "RedHat" and ansible_os_family != 'Suse'
     # - include_role:
     #     name: company.example/nfs
-
