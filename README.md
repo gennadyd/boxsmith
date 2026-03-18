@@ -25,7 +25,7 @@ ISO / Vagrant Cloud / remote box
    upload (Artifactory / S3)
 ```
 
-**Supported OS:**
+**Included out of the box** (any OS/distro can be added via `make add-new-os`):
 
 | OS | Versions | UEFI |
 |----|----------|------|
