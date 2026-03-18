@@ -19,8 +19,8 @@ else
     echo "$GSSAPI" >>"$SSHD_CONFIG"
 fi
 ENV_ACC=AcceptEnv
-if grep -q -E "^[[:space:]]*AcceptEnv" "$SSHD_CONFIG"; then
-    sed -i "s/\(^\s*AcceptEnv.*\)/#\1/" "$SSHD_CONFIG"
+if grep -q -E "^[[:space:]]*${ENV_ACC}" "$SSHD_CONFIG"; then
+    sed -i "s/\(^\s*${ENV_ACC}.*\)/#\1/" "$SSHD_CONFIG"
 fi
 
 PSW_AUTH="PasswordAuthentication yes"

@@ -87,7 +87,7 @@ else
     mv "$IMG" "$TMP_IMG"
 fi
 
-cd "$TMP_DIR"
+cd "$TMP_DIR" || exit
 
 #Using the awk int function here to truncate the virtual image size to an
 #integer since the fog-libvirt library does not seem to properly handle

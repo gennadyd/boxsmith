@@ -27,9 +27,9 @@ if [ "${OS_NAME}" = "sles" ]; then
         sed -i "s/^NETCONFIG_DNS_RESOLVER_OPTIONS=.*/NETCONFIG_DNS_RESOLVER_OPTIONS=\"$DNS_OPTIONS\"/" "$CONFIG_FILE"
     fi
 
-    if command -v /sbin/netconfig &> /dev/null; then
+    if command -v /sbin/netconfig >/dev/null 2>&1; then
         /sbin/netconfig update -f
-    elif command -v /usr/sbin/wicked &> /dev/null; then
+    elif command -v /usr/sbin/wicked >/dev/null 2>&1; then
         wicked --debug all ifup all
     else
         echo "Error: Neither netconfig nor wicked is available."
