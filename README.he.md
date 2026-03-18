@@ -416,11 +416,34 @@ make remove-os OS=debian VERSION=12
 
 ## תמונת Docker
 
+המשתנה `PACKER_IMAGE` קובע את שם התמונה. הגדירו אותו ב-`config.env`
+עם הנתיב המלא לרגיסטרי — כך אותו שם משמש לבנייה, העלאה והרצה:
+
+```bash
+# config.env
+PACKER_IMAGE=registry.example.com/devops/packer-vagrant:latest
+```
+
+**בנייה** של התמונה (מקומית, עם תג `PACKER_IMAGE`):
+
 ```bash
 make docker-build
 
-# גרסאות מותאמות אישית
+# גרסאות כלים מותאמות
 make docker-build PACKER_VER=1.11.1 QEMU_PLUGIN_VER=1.1.0 TIMEZONE=UTC
+```
+
+**העלאה** לרגיסטרי (נדרש `docker login` מראש):
+
+```bash
+docker login registry.example.com
+make docker-push
+# או: docker push "$PACKER_IMAGE"
+```
+
+לאחר ההעלאה, כל מארח עם `config.env` המצביע על אותו `PACKER_IMAGE`
+יכול להריץ בנייות ללא בנייה מקומית מחדש של התמונה.
+
 ```
 
 ---

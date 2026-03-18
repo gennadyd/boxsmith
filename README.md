@@ -494,12 +494,34 @@ This deletes:
 
 ## Docker Image
 
+The `PACKER_IMAGE` variable controls the image name. Set it in `config.env`
+to include the full registry path so the same image name is used for building,
+pushing, and running:
+
+```bash
+# config.env
+PACKER_IMAGE=registry.example.com/devops/packer-vagrant:latest
+```
+
+**Build** the image (runs locally, tags with `PACKER_IMAGE`):
+
 ```bash
 make docker-build
 
-# custom versions
+# custom tool versions
 make docker-build PACKER_VER=1.11.1 QEMU_PLUGIN_VER=1.1.0 TIMEZONE=UTC
 ```
+
+**Push** to the registry (requires Docker login):
+
+```bash
+docker login registry.example.com
+make docker-push
+# or: docker push "$PACKER_IMAGE"
+```
+
+After pushing, any host that has `config.env` with the same `PACKER_IMAGE`
+value can run builds without rebuilding the image locally.
 
 ---
 

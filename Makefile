@@ -157,7 +157,7 @@ endef
 .PHONY: show-local-boxes show-remote-boxes
 .PHONY: show-local-boxes-ubuntu show-local-boxes-rhel show-local-boxes-json
 .PHONY: show-remote-boxes-ubuntu show-remote-boxes-rhel show-remote-boxes-s3 show-remote-boxes-json
-.PHONY: add-new-os remove-os docker-build
+.PHONY: add-new-os remove-os docker-build docker-push
 
 # =============================================================================
 # ── help ─────────────────────────────────────────────────────────────────────
@@ -540,7 +540,11 @@ docker-build:
 		--build-arg QEMU_PLUGIN_VER=$(QEMU_PLUGIN_VER) \
 		--build-arg VAGRANT_PLUGIN_VER=$(VAGRANT_PLUGIN_VER) \
 		--build-arg TIMEZONE=$(TIMEZONE) \
-		-t packer-vagrant docker/
+		-t $(PACKER_IMAGE) docker/
+
+docker-push:
+	$(call require,PACKER_IMAGE)
+	docker push $(PACKER_IMAGE)
 
 # =============================================================================
 # ── Shortcuts ────────────────────────────────────────────────────────────────
