@@ -161,6 +161,39 @@ make ssh  TYPE=org-golden OS=ubuntu VERSION=24.04
 ---
 
 ## Конфигурация
+## Docker-образ
+
+Переменная `PACKER_IMAGE` задаёт имя образа. Пропишите её в `config.env`
+с полным путём до реестра — тогда одно и то же имя используется при сборке,
+публикации и запуске:
+
+```bash
+# config.env
+PACKER_IMAGE=registry.example.com/devops/packer-vagrant:latest
+```
+
+**Сборка** образа (локально, тегируется именем `PACKER_IMAGE`):
+
+```bash
+make docker-build
+
+# пользовательские версии инструментов
+make docker-build PACKER_VER=1.11.1 QEMU_PLUGIN_VER=1.1.0 TIMEZONE=UTC
+```
+
+**Публикация** в реестр (требуется предварительный `docker login`):
+
+```bash
+docker login registry.example.com
+make docker-push
+# или: docker push "$PACKER_IMAGE"
+```
+
+После публикации любой хост с `config.env`, указывающим на этот `PACKER_IMAGE`,
+может запускать сборки без локальной пересборки образа.
+
+---
+
 
 Скопируй и отредактируй `config.env` (не коммить его):
 
@@ -450,39 +483,6 @@ make remove-os OS=debian VERSION=12
 ---
 ---
 
-
-## Docker-образ
-
-Переменная `PACKER_IMAGE` задаёт имя образа. Пропишите её в `config.env`
-с полным путём до реестра — тогда одно и то же имя используется при сборке,
-публикации и запуске:
-
-```bash
-# config.env
-PACKER_IMAGE=registry.example.com/devops/packer-vagrant:latest
-```
-
-**Сборка** образа (локально, тегируется именем `PACKER_IMAGE`):
-
-```bash
-make docker-build
-
-# пользовательские версии инструментов
-make docker-build PACKER_VER=1.11.1 QEMU_PLUGIN_VER=1.1.0 TIMEZONE=UTC
-```
-
-**Публикация** в реестр (требуется предварительный `docker login`):
-
-```bash
-docker login registry.example.com
-make docker-push
-# или: docker push "$PACKER_IMAGE"
-```
-
-После публикации любой хост с `config.env`, указывающим на этот `PACKER_IMAGE`,
-может запускать сборки без локальной пересборки образа.
-
----
 
 ## Результат
 
