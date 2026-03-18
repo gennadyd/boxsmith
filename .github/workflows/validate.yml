@@ -34,62 +34,38 @@ jobs:
           ARTIFACTORY_VAGRANT_REPO: "vagrant-boxes-local"
           DNS_SERVERS: "8.8.8.8"
           DNS_SEARCH_DOMAINS: "example.com"
+          PACKER_PLUGIN_PATH: "/home/runner/.config/packer/plugins"
         run: |
           set -e
           ERRORS=0
 
-          validate_main() {
-            local type=$1 os=$2 ver_file=$3
-            local os_dir="templates/${type}/${os}"
-            local common="${os_dir}/common.json"
-            local specific="${os_dir}/${ver_file}"
-            local template="templates/packer-template.json"
-            if [ -f "templates/packer-template-${type}.json" ]; then
-              template="templates/packer-template-${type}.json"
-            fi
-            echo "  → ${type}/${os}/${ver_file}"
+          # vendor-base: each OS dir contains its own packer.json with builders
+          echo "=== Validating vendor-base templates ==="
+          for os_dir in templates/vendor-base/*/; do
+            os=$(basename "$os_dir")
+            echo "  → vendor-base/${os}"
             packer validate \
               -var-file="templates/_common/packer.json" \
-              -var-file="${common}" \
-              -var-file="${specific}" \
-              -var "box_type=${type}" \
-              "${template}" || { echo "    FAILED: ${type}/${os}/${ver_file}"; ERRORS=$((ERRORS+1)); }
-          }
-
-          echo "=== Validating ubuntu-iso templates ==="
-          for f in templates/os/ubuntu-iso/*.json; do
-            echo "  → $f"
-            PACKER_PLUGIN_PATH=~/.config/packer/plugins packer validate "$f" \
-              || { echo "    FAILED: $f"; ERRORS=$((ERRORS+1)); }
+              -var "box_type=vendor-base" \
+              -var "serial_log=/tmp/serial.log" \
+              "${os_dir}packer.json" \
+              || { echo "    FAILED: vendor-base/${os}"; ERRORS=$((ERRORS+1)); }
           done
 
-          echo "=== Validating cd templates ==="
-          for os_dir in templates/cd/*/; do
-            os=$(basename "$os_dir")
-            for f in "${os_dir}"*.json; do
-              ver_file=$(basename "$f")
-              [ "$ver_file" = "common.json" ] && continue
-              validate_main cd "$os" "$ver_file"
-            done
-          done
-
-          echo "=== Validating base templates ==="
-          for os_dir in templates/base/*/; do
-            os=$(basename "$os_dir")
-            for f in "${os_dir}"*.json; do
-              ver_file=$(basename "$f")
-              [ "$ver_file" = "common.json" ] && continue
-              validate_main base "$os" "$ver_file"
-            done
-          done
-
-          echo "=== Validating dev templates ==="
-          for os_dir in templates/dev/*/; do
-            os=$(basename "$os_dir")
-            for f in "${os_dir}"*.json; do
-              ver_file=$(basename "$f")
-              [ "$ver_file" = "common.json" ] && continue
-              validate_main dev "$os" "$ver_file"
+          # org-base / org-golden: flat var-files, shared packer-template-<type>.json
+          for type in org-base org-golden; do
+            echo "=== Validating ${type} templates ==="
+            template="templates/packer-template-${type}.json"
+            for var_file in "templates/${type}/"*.json; do
+              name=$(basename "$var_file")
+              echo "  → ${type}/${name}"
+              packer validate \
+                -var-file="templates/_common/packer.json" \
+                -var-file="${var_file}" \
+                -var "box_type=${type}" \
+                -var "source_path=/dev/null" \
+                "${template}" \
+                || { echo "    FAILED: ${type}/${name}"; ERRORS=$((ERRORS+1)); }
             done
           done
 
