@@ -1,0 +1,74 @@
+{
+    "builders": [
+        {
+            "communicator": "ssh",
+            "source_path": "{{user `artifactory_download_url`}}/{{user `base_box_name`}}",
+            "box_name": "{{user `base_box_name`}}",
+            "box_version": "{{user `base_box_version`}}",
+            "template": "{{template_dir}}/vagrant-template.rb",
+            "provider": "libvirt",
+            "add_force": true,
+            "skip_package": true,
+            "teardown_method": "halt",
+            "type": "vagrant",
+            "name": "vagrant-org-golden"
+        }
+    ],
+    "provisioners": [
+        {
+            "only": [
+                "vagrant-org-golden"
+            ],
+            "type": "ansible",
+            "user": "vagrant",
+            "playbook_file": "{{template_dir}}/ansible/playbooks/org-golden.yml",
+            "ansible_env_vars": [
+                "ANSIBLE_CONFIG={{template_dir}}/ansible/ansible.cfg"
+            ],
+            "extra_arguments": [
+                "-vv",
+                "--extra-vars",
+                "ansible_python_interpreter={{user `python_path`}}"
+            ]
+        },
+        {
+            "only": [
+                "vagrant-org-golden"
+            ],
+            "environment_vars": [
+                "HOME_DIR=/home/vagrant",
+                "http_proxy={{user `http_proxy`}}",
+                "https_proxy={{user `https_proxy`}}",
+                "no_proxy={{user `no_proxy`}}"
+            ],
+            "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+            "expect_disconnect": true,
+            "scripts": [
+                "{{template_dir}}/org-golden/scripts/cleanup-{{user `box_os`}}.sh"
+            ],
+            "type": "shell"
+        }
+    ],
+    "post-processors": [
+        {
+            "name": "create-box",
+            "type": "shell-local",
+            "inline": [
+                "sudo {{template_dir}}/_common/create_box.sh /var/lib/libvirt/images/output-vagrant-org-golden_source.img box"
+            ]
+        },
+        {
+            "name": "Cleanup",
+            "type": "shell-local",
+            "inline": [
+                "sudo virsh vol-list default | grep \"{{user `base_box_name`}}\" | awk '{print $2}' | xargs -I{} sudo virsh vol-delete {} || true",
+                "sudo virsh vol-list default | grep \"output-vagrant-\" | awk '{print $2}' | xargs -I{} sudo virsh vol-delete {} || true"
+            ]
+        }
+    ],
+    "variables": {
+        "base_box_name": "",
+        "base_box_version": "",
+        "python_path": "/usr/bin/python3"
+    }
+}

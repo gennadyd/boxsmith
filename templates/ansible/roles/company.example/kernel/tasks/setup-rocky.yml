@@ -1,0 +1,10 @@
+- name: Install kernel packages
+  package:
+    name: "{{ kernel_package }}"
+    state: present
+  loop: "{{ kernel_packages }}"
+  loop_control:
+    loop_var: kernel_package
+
+- name: Update grub
+  shell: "{{ grub }}-set-default {{ grub_number }} && {{ grub }}-mkconfig -o /boot/{{ grub }}/grub.cfg"

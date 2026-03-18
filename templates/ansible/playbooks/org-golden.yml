@@ -1,0 +1,61 @@
+- hosts: all
+  become: true
+
+  vars:
+    image_box_type: 'org-golden'
+#   gather_facts: True
+  tasks:
+    # - name: Print all available facts
+    #   debug:
+    #     var: ansible_facts
+    # - name: cat os-release
+    #   shell: cat /etc/os-release
+    #   register: os_release
+
+    # - name: Print os-release contents
+    #   debug:
+    #     msg: "{{ os_release.stdout }}"
+
+    # - name: Print distribution version specific filename
+    #   debug:
+    #     msg: "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+
+    # - name: Print distribution major version specific filename
+    #   debug:
+    #     msg: "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+
+    # - name: Print OS family version specific filename
+    #   debug:
+    #     msg: "{{ ansible_os_family | lower }}-{{ ansible_distribution_version | lower }}.yml"
+
+    # - name: Print distribution specific filename
+    #   debug:
+    #     msg: "{{ ansible_distribution | lower }}.yml"
+
+    # - include_role:
+    #     name:  company.example/proxy
+    # - include_role:
+    #     name:  company.example/repos
+    # - include_role:
+    #     name:  company.example/kernel
+    #   when: ansible_os_family != 'Suse' and not (ansible_distribution == 'CentOS' and ansible_distribution_version == '7.5')
+    # - include_role:
+    #     name:  company.example/docker
+    #   when: ansible_distribution != "CentOS"
+    - name: Write /etc/box-release
+      copy:
+        dest: /etc/box-release
+        mode: '0644'
+        content: |
+          BOX_TYPE={{ box_type }}
+          BOX_OS={{ box_os }}
+          BOX_OS_VERSION={{ box_os_version }}
+          BOX_VERSION={{ box_version }}
+          BOX_NAME={{ box_os }}-{{ box_os_version }}-{{ box_type }}-{{ box_version }}
+
+    - include_role:
+        name: company.example/pip
+      when: ansible_os_family != "RedHat" and ansible_os_family != 'Suse'
+    # - include_role:
+    #     name: company.example/nfs
+

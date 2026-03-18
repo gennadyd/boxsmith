@@ -1,0 +1,11 @@
+---
+- name: Install packages - RPM
+  shell: "yum install -y {{ package }}"
+  loop: "{{ packages }}"
+  loop_control:
+    loop_var: package
+
+- name: Install kernel packages
+  shell: "amazon-linux-extras install {{ item }} -y"
+  with_items:
+    - "{{ kernel_packages }}"

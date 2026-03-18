@@ -1,0 +1,5 @@
+---
+common_packages: []
+common_packages_dev: []
+
+# internal_cli_url: "{{ lookup('env', 'INTERNAL_ARTIFACT_URL') }}/tools/my-tool"

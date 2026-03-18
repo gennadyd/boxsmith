@@ -1,0 +1,10 @@
+---
+kernel_name: 5.14.0-570.18.1.el9_6.x86_64
+kernel_modules_build: "/usr/src/kernels/{{ kernel_name }}"
+kernel_packages:
+  - "kernel-{{ kernel_name }}"
+  - "kernel-core-{{ kernel_name }}"
+  - "kernel-modules-{{ kernel_name }}"
+  - "kernel-modules-core-{{ kernel_name }}"
+  - "kernel-devel-{{ kernel_name }}"
+  - "kernel-headers-{{ kernel_name }}"

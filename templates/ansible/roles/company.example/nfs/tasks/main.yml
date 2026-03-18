@@ -1,0 +1,38 @@
+---
+
+- name: Import distribution specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}.yml"
+    - blank.yml
+
+- name: Create dirs
+  file:
+    path: "/{{ item.name }}"
+    mode: 777
+    state: directory
+  loop: "{{ nfs_info }}"
+  become: yes
+
+- name: add to ansible hosts file
+  lineinfile:
+    insertafter: EOF
+    path: "{{ nfs_file }}"
+    line: "#HL_CLOUD-BEGIN"
+  become: yes
+
+- name: Update fstab
+  lineinfile:
+    insertafter: EOF
+    path: "{{ nfs_file }}"
+    line: "{{ item.server }}:{{ item.folder }} /{{ item.name }} {{ item.cmd }}"
+  loop: "{{ nfs_info }}"
+  become: yes
+
+- name: add to ansible hosts file
+  lineinfile:
+    insertafter: EOF
+    path: "{{ nfs_file }}"
+    line: "#HL_CLOUD-END"
+  become: yes

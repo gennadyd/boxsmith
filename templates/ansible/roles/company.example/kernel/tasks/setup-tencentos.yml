@@ -1,0 +1,12 @@
+---
+- name: Install kernel packages TC3.1
+  ansible.builtin.dnf:
+    name: "{{ my_item }}"
+    state: present
+    use_backend: dnf
+  loop: "{{ kernel_packages }}"
+  loop_control:
+    loop_var: my_item
+  vars:
+    ansible_python_interpreter: /usr/local/bin/python3.10
+

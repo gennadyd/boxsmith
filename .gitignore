@@ -1,0 +1,22 @@
+output-vagrant*
+box
+.vagrant.d
+dummy_artifact
+_tmp*config.env
+*.env
+!config.example.env
+# Persistent ISO cache for ubuntu-iso builds
+.packer-cache/
+# Build logs
+logs/
+# Built box artifacts
+builds/
+templates/builds/
+# Built box files
+*.box
+templates/**/efivars.fd
+__pycache__/
+
+# vagrant state dirs left by packer vendor-base builds
+templates/**/output-*/.vagrant/
+templates/**/output-*/

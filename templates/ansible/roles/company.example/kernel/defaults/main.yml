@@ -1,0 +1,6 @@
+---
+artifactory_url: https://artifactory-kfs.habana-labs.com/artifactory
+grub: grub2
+grub_number: 0
+grub_file: /etc/default/grub
+packages: []

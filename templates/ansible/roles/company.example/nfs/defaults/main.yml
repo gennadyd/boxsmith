@@ -1,0 +1,28 @@
+---
+nfs_cmd: "nfs rw,bg,nofail,vers=3,timeo=900,retrans=3,rsize=65536,wsize=65536,noatime 0 0"
+nfs_file: /etc/fstab
+nfs_info:
+  - name: software
+    server: {{ nfs_server }}
+    folder: /software
+    cmd: "{{ nfs_cmd }}"
+  - name: users
+    server: {{ nfs_server }}
+    folder: /users
+    cmd: "{{ nfs_cmd }}"
+  - name: qa
+    server: {{ nfs_server }}
+    folder: /qa
+    cmd: "{{ nfs_cmd }}"
+  - name: git_lfs
+    server: {{ nfs_server }}
+    folder: /git_lfs
+    cmd: "{{ nfs_cmd }}"
+  - name: synopsys
+    server: {{ nfs_server }}
+    folder: /synopsys
+    cmd: "{{ nfs_cmd }}"
+  - name: tools
+    server: {{ nfs_data_server }}
+    folder: /tools
+    cmd: "{{ nfs_cmd }}"

@@ -1,0 +1,5 @@
+---
+pip_installer: https://bootstrap.pypa.io/get-pip.py
+pip_executable: pip3
+python_version: python3
+pip_packages: []

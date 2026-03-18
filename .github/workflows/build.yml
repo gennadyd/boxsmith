@@ -1,0 +1,109 @@
+name: Build
+
+# Requires a self-hosted runner with:
+#   - /dev/kvm accessible
+#   - Docker + Vagrant + vagrant-libvirt installed
+#   - User in kvm + docker + libvirt groups
+#   - label: [self-hosted, kvm]
+
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        description: "Box type"
+        required: true
+        default: "cd"
+        type: choice
+        options: [base, cd, dev]
+      os_name:
+        description: "OS name (ubuntu, rhel, rocky, debian, amzn…)"
+        required: true
+        default: "ubuntu"
+      os_version:
+        description: "OS version (22.04, 24.04, 9.4…)"
+        required: true
+        default: "22.04"
+      uefi:
+        description: "UEFI boot"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+      smoke_test:
+        description: "Run smoke-test (vagrant up) after build"
+        required: false
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+      upload_box:
+        description: "Upload box to Artifactory after build"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+jobs:
+  build:
+    name: "${{ inputs.type }}/${{ inputs.os_name }}${{ inputs.os_version }}"
+    runs-on: [self-hosted, kvm]
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify KVM access
+        run: |
+          ls -la /dev/kvm
+          groups | grep kvm || { echo "ERROR: user not in kvm group"; exit 1; }
+
+      - name: Prepare .packer-cache (persistent ISO cache)
+        run: mkdir -p .packer-cache
+
+      - name: Write config.env
+        run: |
+          cat > config.env << ENV
+          ARTIFACTORY_URL=${{ secrets.ARTIFACTORY_URL }}
+          ARTIFACTORY_VAGRANT_REPO=${{ secrets.ARTIFACTORY_VAGRANT_REPO }}
+          ARTIFACTORY_API_KEY=${{ secrets.ARTIFACTORY_API_KEY }}
+          PACKER_IMAGE=${{ secrets.PACKER_IMAGE }}
+          DNS_SERVERS=${{ secrets.DNS_SERVERS }}
+          DNS_SEARCH_DOMAINS=${{ secrets.DNS_SEARCH_DOMAINS }}
+          NFS_SERVER=${{ secrets.NFS_SERVER }}
+          NFS_DATA_SERVER=${{ secrets.NFS_DATA_SERVER }}
+          JFROG_CLI_VER=${{ secrets.JFROG_CLI_VER }}
+          ENV
+
+      - name: Build
+        run: |
+          make build \
+            TYPE=${{ inputs.type }} \
+            OS=${{ inputs.os_name }} \
+            VERSION=${{ inputs.os_version }} \
+            UEFI=${{ inputs.uefi }} \
+            UPLOAD=false
+
+      - name: Smoke test
+        if: inputs.smoke_test == 'true'
+        run: |
+          make test \
+            TYPE=${{ inputs.type }} \
+            OS=${{ inputs.os_name }} \
+            VERSION=${{ inputs.os_version }} \
+            UEFI=${{ inputs.uefi }}
+
+      - name: Upload to Artifactory
+        if: inputs.upload_box == 'true'
+        run: |
+          make push \
+            TYPE=${{ inputs.type }} \
+            OS=${{ inputs.os_name }} \
+            VERSION=${{ inputs.os_version }} \
+            UEFI=${{ inputs.uefi }}
+
+      - name: Save box as GitHub artifact (if not uploading to Artifactory)
+        if: success() && inputs.upload_box == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ inputs.os_name }}${{ inputs.os_version }}-${{ inputs.type }}.box"
+          path: box
+          retention-days: 7

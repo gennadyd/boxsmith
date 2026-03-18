@@ -1,0 +1,11 @@
+{
+    "artifactory_server": "{{env `ARTIFACTORY_URL`}}",
+    "artifactory_repo_name": "{{env `ARTIFACTORY_VAGRANT_REPO`}}",
+    "artifactory_download_url": "{{user `artifactory_server`}}/api/vagrant/{{user `artifactory_repo_name`}}",
+    "http_proxy": "{{env `http_proxy`}}",
+    "https_proxy": "{{env `https_proxy`}}",
+    "no_proxy": "{{env `no_proxy`}}",
+    "python_path": "/usr/bin/python3",
+    "dns_servers": "{{env `DNS_SERVERS`}}",
+    "dns_search_domains": "{{env `DNS_SEARCH_DOMAINS`}}"
+}

@@ -1,0 +1,173 @@
+{
+    "builders": [
+        {
+            "name": "iso-legacy",
+            "type": "qemu",
+            "accelerator": "kvm",
+            "use_default_display": true,
+            "boot_command": [
+                "<wait>e<wait><down><down><down><end> autoinstall ds=nocloud-net\\;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu/ <wait><f10><wait>"
+            ],
+            "boot_wait": "5s",
+            "cpus": "{{ user `cpus` }}",
+            "disk_size": "{{user `disk_size`}}",
+            "headless": "{{ user `headless` }}",
+            "http_directory": "{{user `http_directory`}}",
+            "iso_checksum": "{{user `iso_checksum`}}",
+            "iso_url": "{{user `mirror`}}/{{user `mirror_directory`}}/{{user `iso_name`}}",
+            "memory": "{{ user `memory` }}",
+            "output_directory": "{{ user `build_directory` }}/packer-{{user `template`}}-qemu",
+            "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+            "ssh_password": "vagrant",
+            "ssh_port": 22,
+            "ssh_timeout": "10000s",
+            "ssh_username": "vagrant",
+            "vm_name": "{{ user `template` }}"
+        },
+        {
+            "name": "iso-uefi",
+            "type": "qemu",
+            "accelerator": "kvm",
+            "machine_type": "q35",
+            "use_default_display": true,
+            "efi_firmware_code": "{{user `efi_code`}}",
+            "efi_firmware_vars": "{{user `efi_vars`}}",
+            "qemuargs": [
+                [
+                    "-cpu",
+                    "host"
+                ],
+                [
+                    "-serial",
+                    "file:{{user `serial_log`}}"
+                ]
+            ],
+            "boot_command": [
+                "<wait>e<wait><down><down><down><end> autoinstall ds=nocloud-net\\;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu-uefi/ console=ttyS0,115200n8 <wait><f10><wait>"
+            ],
+            "boot_wait": "{{user `uefi_boot_wait`}}",
+            "cpus": "{{ user `cpus` }}",
+            "disk_size": "{{user `disk_size`}}",
+            "headless": "{{ user `headless` }}",
+            "http_directory": "{{user `http_directory`}}",
+            "iso_checksum": "{{user `iso_checksum`}}",
+            "iso_url": "{{user `mirror`}}/{{user `mirror_directory`}}/{{user `iso_name`}}",
+            "memory": "{{ user `memory` }}",
+            "output_directory": "{{ user `build_directory` }}/packer-{{user `template`}}-uefi-qemu",
+            "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+            "shutdown_timeout": "10m",
+            "ssh_password": "vagrant",
+            "ssh_port": 22,
+            "ssh_timeout": "10000s",
+            "ssh_username": "vagrant",
+            "vm_name": "{{ user `template` }}-uefi"
+        },
+        {
+            "name": "box-legacy",
+            "type": "vagrant",
+            "communicator": "ssh",
+            "source_path": "{{user `source_path`}}",
+            "box_name": "{{user `box_src_name`}}",
+            "template": "{{template_dir}}/../../vagrant-template.rb",
+            "provider": "libvirt",
+            "add_force": true,
+            "skip_package": true,
+            "teardown_method": "halt"
+        },
+        {
+            "name": "box-uefi",
+            "type": "vagrant",
+            "communicator": "ssh",
+            "source_path": "{{user `source_path`}}",
+            "box_name": "{{user `box_src_name`}}",
+            "template": "{{template_dir}}/../../vagrant-template.rb",
+            "provider": "libvirt",
+            "add_force": true,
+            "skip_package": true,
+            "teardown_method": "halt"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "environment_vars": [
+                "HOME_DIR=/home/vagrant",
+                "http_proxy={{user `http_proxy`}}",
+                "https_proxy={{user `https_proxy`}}",
+                "no_proxy={{user `no_proxy`}}"
+            ],
+            "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+            "expect_disconnect": true,
+            "scripts": [
+                "{{template_dir}}/scripts/update.sh",
+                "{{template_dir}}/scripts/sshd.sh",
+                "{{template_dir}}/scripts/networking.sh",
+                "{{template_dir}}/scripts/sudoers.sh",
+                "{{template_dir}}/scripts/vagrant.sh",
+                "{{template_dir}}/scripts/cleanup.sh"
+            ]
+        }
+    ],
+    "post-processors": [
+        {
+            "only": [
+                "iso-legacy",
+                "iso-uefi"
+            ],
+            "type": "vagrant",
+            "output": "{{ user `build_directory` }}/{{user `box_basename`}}.{{.Provider}}.box"
+        },
+        {
+            "only": [
+                "box-legacy"
+            ],
+            "type": "shell-local",
+            "inline": [
+                "sudo {{template_dir}}/../../_common/create_box.sh /var/lib/libvirt/images/output-box-legacy_source.img box"
+            ]
+        },
+        {
+            "only": [
+                "box-uefi"
+            ],
+            "type": "shell-local",
+            "inline": [
+                "sudo {{template_dir}}/../../_common/create_box.sh /var/lib/libvirt/images/output-box-uefi_source.img box"
+            ]
+        },
+        {
+            "only": [
+                "box-legacy",
+                "box-uefi"
+            ],
+            "type": "shell-local",
+            "inline": [
+                "sudo virsh vol-list default | grep '{{user `name`}}-vendor-base-src\\|output-box-' | awk '{print $2}' | xargs -I{} sudo virsh vol-delete {} || true"
+            ]
+        }
+    ],
+    "variables": {
+        "box_basename": "ubuntu-24.04",
+        "build_directory": "../../../builds",
+        "cpus": "4",
+        "disk_size": "65536",
+        "headless": "true",
+        "http_directory": "{{template_dir}}/http",
+        "http_proxy": "{{env `http_proxy`}}",
+        "https_proxy": "{{env `https_proxy`}}",
+        "iso_checksum": "file:https://releases.ubuntu.com/noble/SHA256SUMS",
+        "iso_name": "ubuntu-24.04.3-live-server-amd64.iso",
+        "memory": "4096",
+        "mirror": "https://releases.ubuntu.com",
+        "mirror_directory": "noble",
+        "name": "ubuntu-24.04",
+        "no_proxy": "{{env `no_proxy`}}",
+        "efi_code": "/usr/share/OVMF/OVMF_CODE_4M.fd",
+        "efi_vars": "{{template_dir}}/efivars.fd",
+        "uefi_boot_wait": "15s",
+        "serial_log": "/dev/null",
+        "source_path": "__OVERRIDE_BY_MAKEFILE__",
+        "template": "ubuntu-24.04-amd64",
+        "box_src_name": "{{user `name`}}-vendor-base-src"
+    }
+}

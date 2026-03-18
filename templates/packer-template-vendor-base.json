@@ -1,0 +1,39 @@
+{
+    "builders": [
+        {
+            "name": "vagrant-os",
+            "type": "file",
+            "content": "{{ user `box_url` }}",
+            "target": "{{user `box_name`}}-{{ user `box_version` }}"
+        }
+    ],
+    "post-processors": [
+        {
+            "name": "Mutate box",
+            "type": "shell-local",
+            "inline": [
+                "sudo vagrant plugin install vagrant-mutate",
+                "sudo vagrant mutate {{ user `box_url` }} libvirt",
+                "dmesg -w"
+            ]
+        },
+        {
+            "name": "Create box",
+            "type": "shell-local",
+            "inline": [
+                "sudo {{template_dir}}/_common/create_box.sh /.vagrant.d/boxes/virtualbox/{{ user `box_version` }}/libvirt/box.img box"
+            ]
+        },
+        {
+            "name": "Upload box",
+            "type": "shell-local",
+            "inline": [
+                "curl -H 'X-JFrog-Art-Api:{{user `api_key`}}' -T box \"{{user `artifactory_url`}}/{{user `box_os`}}/{{user `box_name`}}-libvirt-{{user `box_version`}}.box;box_name={{user `box_name`}}-libvirt;box_provider=libvirt;box_version={{user `box_version`}}\""
+            ]
+        }
+    ],
+    "variables": {
+        "artifactory_url": "{{env `ARTIFACTORY_URL`}}"
+    },
+    "sensitive-variables": ["api_key"]
+}

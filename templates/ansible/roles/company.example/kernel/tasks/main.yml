@@ -1,0 +1,38 @@
+---
+- name: Import distribution specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}.yml"
+    - blank.yml
+
+- name: Run distribution specific setup
+  include_tasks: "{{ item }}"
+  with_first_found:
+    - "setup-{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "setup-{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+    - "setup-{{ ansible_distribution | lower }}.yml"
+    - "setup-{{ ansible_os_family | lower }}.yml"
+    - setup-default.yml
+
+
+# - name: Remove kernel build link
+#   file:
+#     path: "/lib/modules/{{ kernel_name }}/build"
+#     state: absent
+#   when: not ansible_distribution | lower in ['rhel', 'amazon', 'tencentos']
+
+# - name: Create kernel build link
+#   file:
+#     src: "{{ kernel_modules_build }}"
+#     dest: "/lib/modules/{{ kernel_name }}/build"
+#     owner: root
+#     group: root
+#     state: link
+#   when: ansible_os_family | lower == 'ubuntu'
+
+# - name: Update grub
+#   shell: "{{ grub }}-set-default {{ grub_number }} && {{ grub }}-mkconfig -o /boot/{{ grub }}/grub.cfg"
+#   when: not ansible_distribution | lower == 'rhel'

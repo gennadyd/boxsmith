@@ -1,0 +1,8 @@
+---
+common_packages:
+  - cmake
+  - libarchive
+  - gcc
+  - elfutils-libelf-devel
+  - jq
+  - lsb_release

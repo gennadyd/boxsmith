@@ -1,0 +1,9 @@
+---
+- name: Install kernel packages
+  ansible.builtin.dnf:
+    name: "{{ kernel_package }}"
+    state: present
+    use_backend: dnf
+  loop: "{{ kernel_packages }}"
+  loop_control:
+    loop_var: kernel_package

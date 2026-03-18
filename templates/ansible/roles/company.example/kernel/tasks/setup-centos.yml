@@ -1,0 +1,13 @@
+---
+
+- name: Install kernel packages
+  shell: "yum install -y {{ item }}"
+  with_items: "{{kernel_packages}}"
+
+- name: Set default kernel
+  shell: "grubby --set-default='/boot/vmlinuz-{{kernel_name}}'"
+  when: ansible_distribution_version | lower == '8'
+
+- name: Update grub
+  shell: "{{ grub }}-set-default {{ grub_number }} && {{ grub }}-mkconfig -o /boot/{{ grub }}/grub.cfg"
+  when: ansible_distribution_version | lower == '7'

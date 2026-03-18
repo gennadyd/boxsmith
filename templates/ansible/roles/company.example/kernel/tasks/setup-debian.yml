@@ -1,0 +1,15 @@
+---
+
+- name: Get kernel packages
+  get_url:
+    url: "{{ artifactory_url }}/{{ kernel_packages_url }}/{{ item }}"
+    dest: /tmp/
+    mode: 0755
+  loop: "{{ kernel_packages }}"
+
+- name: Install kernel packages - DEB
+  shell: "apt install -y /tmp/{{ item }}"
+  loop: "{{ kernel_packages }}"
+
+- name: Update grub
+  shell: grub-set-default 0 && grub-mkconfig -o /boot/grub/grub.cfg

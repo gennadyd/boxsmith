@@ -1,0 +1,56 @@
+---
+
+- name: Import distribution specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}.yml"
+    - blank.yml
+
+- name: Install common packages
+  package:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ common_packages }}"
+  when: ansible_distribution | lower not in ['tencentos', 'alibaba','centos']
+
+- name: Install common packages on CentOS with GPG check disabled
+  yum:
+    name: "{{ item }}"
+    state: latest
+    disable_gpg_check: yes
+  loop: "{{ common_packages }}"
+  when: ansible_distribution | lower == 'centos'
+
+- name: Install common packages on TencentOS or Alibaba OS
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: latest
+    use_backend: dnf
+  loop: "{{ common_packages }}"
+  when: ansible_distribution | lower in ['tencentos', 'alibaba','opencloudos']
+
+- name: Install DEV packages
+  package:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ common_packages_dev }}"
+  when: image_box_type == "dev"
+
+- name: update pci ids
+  shell: update-pciids
+  ignore_errors: true
+
+# Add your company-specific tasks here, for example:
+# - name: Install internal CLI tool
+#   get_url:
+#     url: "{{ internal_cli_url }}"
+#     dest: /usr/local/bin/my-tool
+#     mode: 0755
+
+# - name: Configure internal SSH settings
+#   copy:
+#     src: ssh_config.conf
+#     dest: /etc/ssh/ssh_config.d/internal.conf
+#     mode: 0644

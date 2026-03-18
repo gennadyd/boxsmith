@@ -1,0 +1,21 @@
+---
+
+- name: Install kernel packages - deb
+  package:
+    name: "{{ kernel_package }}"
+    state: present
+  loop: "{{ kernel_packages }}"
+  loop_control:
+    loop_var: kernel_package
+
+- name: Set default kernel in grub file (ub20)
+  lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_DEFAULT=.*'
+    line: 'GRUB_DEFAULT="Advanced options for Ubuntu>Ubuntu, with Linux {{ kernel_name }}"'
+    backup: yes
+  when: ansible_distribution_version | lower == '20.04' or ansible_distribution_version | lower == '22.04'
+
+- name: Update grub
+  shell: grub-set-default 0 && grub-mkconfig -o /boot/grub/grub.cfg
+  when: ansible_distribution_version | lower == '18.04'

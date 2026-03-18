@@ -1,0 +1,165 @@
+{
+    "builders": [
+        {
+            "name": "iso-legacy",
+            "type": "qemu",
+            "accelerator": "kvm",
+            "use_default_display": true,
+            "boot_command": [
+                "<wait><up><wait><tab> inst.text inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg<enter><wait>"
+            ],
+            "boot_wait": "5s",
+            "cpus": "{{ user `cpus` }}",
+            "disk_size": "{{user `disk_size`}}",
+            "headless": "{{ user `headless` }}",
+            "http_directory": "{{user `http_directory`}}",
+            "iso_checksum": "{{user `iso_checksum`}}",
+            "iso_url": "{{user `mirror`}}/{{user `iso_name`}}",
+            "memory": "{{ user `memory` }}",
+            "output_directory": "{{ user `build_directory` }}/packer-{{user `template`}}-qemu",
+            "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+            "ssh_password": "vagrant",
+            "ssh_port": 22,
+            "ssh_timeout": "10000s",
+            "ssh_username": "vagrant",
+            "vm_name": "{{ user `template` }}"
+        },
+        {
+            "name": "iso-uefi",
+            "type": "qemu",
+            "accelerator": "kvm",
+            "machine_type": "q35",
+            "use_default_display": true,
+            "qemuargs": [
+                [
+                    "-drive",
+                    "if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd"
+                ],
+                [
+                    "-drive",
+                    "if=pflash,format=raw,file={{template_dir}}/efivars.fd"
+                ]
+            ],
+            "boot_command": [
+                "<wait5>e<down><down><down><end> inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks-uefi.cfg<leftCtrlOn>x<leftCtrlOff>"
+            ],
+            "boot_wait": "10s",
+            "cpus": "{{ user `cpus` }}",
+            "disk_size": "{{user `disk_size`}}",
+            "headless": "{{ user `headless` }}",
+            "http_directory": "{{user `http_directory`}}",
+            "iso_checksum": "{{user `iso_checksum`}}",
+            "iso_url": "{{user `mirror`}}/{{user `iso_name`}}",
+            "memory": "{{ user `memory` }}",
+            "output_directory": "{{ user `build_directory` }}/packer-{{user `template`}}-uefi-qemu",
+            "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+            "ssh_password": "vagrant",
+            "ssh_port": 22,
+            "ssh_timeout": "10000s",
+            "ssh_username": "vagrant",
+            "vm_name": "{{ user `template` }}-uefi"
+        },
+        {
+            "name": "box-legacy",
+            "type": "vagrant",
+            "communicator": "ssh",
+            "source_path": "{{user `source_path`}}",
+            "box_name": "{{user `box_src_name`}}",
+            "template": "{{template_dir}}/../../vagrant-template.rb",
+            "provider": "libvirt",
+            "add_force": true,
+            "skip_package": true,
+            "teardown_method": "halt"
+        },
+        {
+            "name": "box-uefi",
+            "type": "vagrant",
+            "communicator": "ssh",
+            "source_path": "{{user `source_path`}}",
+            "box_name": "{{user `box_src_name`}}",
+            "template": "{{template_dir}}/../../vagrant-template.rb",
+            "provider": "libvirt",
+            "add_force": true,
+            "skip_package": true,
+            "teardown_method": "halt"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "environment_vars": [
+                "HOME_DIR=/home/vagrant",
+                "http_proxy={{user `http_proxy`}}",
+                "https_proxy={{user `https_proxy`}}",
+                "no_proxy={{user `no_proxy`}}"
+            ],
+            "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+            "expect_disconnect": true,
+            "scripts": [
+                "{{template_dir}}/scripts/update.sh",
+                "{{template_dir}}/scripts/sshd.sh",
+                "{{template_dir}}/scripts/networking.sh",
+                "{{template_dir}}/scripts/sudoers.sh",
+                "{{template_dir}}/scripts/vagrant.sh",
+                "{{template_dir}}/scripts/cleanup.sh"
+            ]
+        }
+    ],
+    "post-processors": [
+        {
+            "only": [
+                "iso-legacy",
+                "iso-uefi"
+            ],
+            "type": "vagrant",
+            "output": "{{ user `build_directory` }}/{{user `box_basename`}}.{{.Provider}}.box"
+        },
+        {
+            "only": [
+                "box-legacy"
+            ],
+            "type": "shell-local",
+            "inline": [
+                "sudo {{template_dir}}/../../_common/create_box.sh /var/lib/libvirt/images/output-box-legacy_source.img box"
+            ]
+        },
+        {
+            "only": [
+                "box-uefi"
+            ],
+            "type": "shell-local",
+            "inline": [
+                "sudo {{template_dir}}/../../_common/create_box.sh /var/lib/libvirt/images/output-box-uefi_source.img box"
+            ]
+        },
+        {
+            "only": [
+                "box-legacy",
+                "box-uefi"
+            ],
+            "type": "shell-local",
+            "inline": [
+                "sudo virsh vol-list default | grep '{{user `name`}}-vendor-base-src\\|output-box-' | awk '{print $2}' | xargs -I{} sudo virsh vol-delete {} || true"
+            ]
+        }
+    ],
+    "variables": {
+        "box_basename": "rhel-9.6",
+        "build_directory": "../../../builds",
+        "cpus": "4",
+        "disk_size": "65536",
+        "headless": "true",
+        "http_directory": "{{template_dir}}/http",
+        "http_proxy": "{{env `http_proxy`}}",
+        "https_proxy": "{{env `https_proxy`}}",
+        "iso_checksum": "none",
+        "iso_name": "rhel-9.6-x86_64-dvd.iso",
+        "memory": "4096",
+        "mirror": "",
+        "name": "rhel-9.6",
+        "no_proxy": "{{env `no_proxy`}}",
+        "source_path": "__OVERRIDE_BY_MAKEFILE__",
+        "template": "rhel-9.6-x86_64",
+        "box_src_name": "{{user `name`}}-vendor-base-src"
+    }
+}

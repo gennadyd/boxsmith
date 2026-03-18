@@ -1,0 +1,170 @@
+---
+
+- name: Import distribution specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+    - "{{ ansible_distribution | lower }}.yml"
+    - blank.yml
+
+- name: Print all available facts
+  debug:
+    var: ansible_facts
+- name: Display all variables/facts known for a host
+  ansible.builtin.debug:
+    var: hostvars[inventory_hostname]
+#     verbosity: 4
+
+- name: Add proxy settings
+  ansible.builtin.lineinfile:
+    dest: '/etc/environment'
+    line: "{{ proxy_line }}"
+    create: true
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  loop:
+    - 'http_proxy={{ http_proxy }}'
+    - 'https_proxy={{ https_proxy }}'
+    - 'ftp_proxy={{ ftp_proxy }}'
+    - 'socks_proxy={{ proxy_socks }}'
+    - 'no_proxy={{ no_proxy | trim }}'
+    - 'HTTP_PROXY={{ http_proxy }}'
+    - 'HTTPS_PROXY={{ https_proxy }}'
+    - 'FTP_PROXY={{ ftp_proxy }}'
+    - 'SOCKS_PROXY={{ proxy_socks }}'
+    - 'NO_PROXY={{ no_proxy | trim }}'
+  loop_control:
+    loop_var: proxy_line
+  when: proxy_line is defined and proxy_line != ""
+
+- name: Add proxy settings to /etc/sysconfig/proxy for Suse
+  ansible.builtin.lineinfile:
+    dest: '/etc/sysconfig/proxy'
+    line: "{{ proxy_line }}"
+    create: true
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  loop:
+    - 'http_proxy={{ http_proxy }}'
+    - 'https_proxy={{ https_proxy }}'
+    - 'ftp_proxy={{ ftp_proxy }}'
+    - 'socks_proxy={{ proxy_socks }}'
+    - 'no_proxy={{ no_proxy | trim }}'
+    - 'HTTP_PROXY={{ http_proxy }}'
+    - 'HTTPS_PROXY={{ https_proxy }}'
+    - 'FTP_PROXY={{ ftp_proxy }}'
+    - 'SOCKS_PROXY={{ proxy_socks }}'
+    - 'NO_PROXY={{ no_proxy | trim }}'
+  loop_control:
+    loop_var: proxy_line
+  when: (proxy_line is defined and proxy_line != "") and ansible_os_family == 'Suse'
+
+- name: Add PROXY_ENABLED setting for Suse
+  ansible.builtin.lineinfile:
+    dest: '/etc/sysconfig/proxy'
+    line: 'PROXY_ENABLED="yes"'
+    create: true
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  when: ansible_os_family == 'Suse'
+
+- name: Apply proxy settings for apt
+  copy:
+    dest: "{{ apt_conf_file }}"
+    content: |
+      Acquire::http::Proxy "{{ https_proxy }}";
+      Acquire::http::Proxy { your-artifactory.example.com DIRECT; your-artifactory.example.com DIRECT; artifactory-idc.your-artifactory.example.com DIRECT;};
+      Acquire::https::Proxy "{{ https_proxy }}";
+      Acquire::https::Proxy { your-artifactory.example.com DIRECT; your-artifactory.example.com DIRECT; artifactory-idc.your-artifactory.example.com DIRECT;};
+  when: ansible_os_family == 'Debian'
+
+- name: Configure proxy for wget in /etc
+  ansible.builtin.copy:
+    dest: '/etc/wgetrc'
+    content: |
+      use_proxy=yes
+      http_proxy={{ http_proxy }}
+      https_proxy={{ https_proxy }}
+      no_proxy={{ no_proxy | trim }}
+    owner: 'root'
+    group: 'root'
+    mode: '0o644'
+
+- name: Ensure SSH configuration directory exists
+  ansible.builtin.file:
+    path: "/etc/ssh/ssh_config.d"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: "(RedHat) Proxy dependencies dnf"
+  ansible.builtin.dnf:
+    name:
+      - "nmap-ncat"
+    state: present
+    use_backend: dnf4
+  when: ( ansible_os_family == "RedHat" or ansible_os_family == "TencentOS Server" or ansible_os_family | lower =='navix' or ansible_os_family | lower =='opencloudos' ) and ( ansible_pkg_mgr == 'dnf' or ansible_distribution == 'TencentOS' )
+
+- name: "(RedHat) Proxy dependencies yum"
+  yum:
+    name:
+      - "nmap-ncat"
+    state: present
+  when: ansible_os_family == "RedHat" and ansible_distribution == 'CentOS' and ansible_distribution_version == "7.5"
+
+- name: "(Debian) Proxy dependencies"
+  apt:
+    pkg:
+      - "netcat-openbsd"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Update main ssh_config
+  ansible.builtin.lineinfile:
+    insertafter: EOF
+    dest: '/etc/ssh/ssh_config'
+    line: 'Include /etc/ssh/ssh_config.d/*.conf'
+  when: ( ansible_distribution == 'CentOS' and ansible_distribution_version == "7.5" ) or ansible_os_family == 'Suse'
+
+- name: Create or update SSH configuration file for GitHub
+  ansible.builtin.copy:
+    dest: "/etc/ssh/ssh_config.d/github.conf"
+    content: |
+      Host github.com*
+        ProxyCommand {{ nc_syntax }} proxy.example.com:917 %h %p
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    nc_syntax : "{{ 'nc -X connect -x ' if ansible_distribution in ['Ubuntu', 'Debian'] else 'ncat --proxy-type http --proxy' }}"
+
+- name: Ensure Docker proxy directory exists
+  file:
+    path: "{{ docker_proxy_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Apply proxy settings for Docker
+  copy:
+    dest: "{{ docker_proxy_file }}"
+    content: |
+      [Service]
+      Environment="HTTP_PROXY={{ http_proxy }}"
+      Environment="HTTPS_PROXY={{ http_proxy }}"
+      Environment="NO_PROXY={{ no_proxy }}"
+
+# # - name: Reload systemd daemon if Docker proxy configuration is changed
+# #   systemd:
+# #     daemon_reload: true
+# #   when: ansible_facts.packages['docker-ce'] is defined
+
+# # - name: Restart Docker if Docker proxy configuration is changed
+#   systemd:
+#     name: docker
+#     state: restarted
+#     enabled: true
+#   become: true

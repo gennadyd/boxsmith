@@ -1,0 +1,10 @@
+---
+- name: Install kernel packages
+  community.general.zypper:
+    name: "{{ my_item }}"
+    state: present
+  loop: "{{ kernel_packages }}"
+  loop_control:
+    loop_var: my_item
+  vars:
+    ansible_python_interpreter: python3.6

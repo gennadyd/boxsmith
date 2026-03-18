@@ -1,0 +1,10 @@
+---
+
+kernel_name: 6.8.0-100-generic
+
+kernel_modules_build: "/usr/src/linux-headers-{{ kernel_name }}"
+kernel_packages:
+  - "linux-image-{{ kernel_name }}"
+  - "linux-headers-{{ kernel_name }}"
+  - "linux-modules-{{ kernel_name }}"
+  - "linux-modules-extra-{{ kernel_name }}"

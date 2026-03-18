@@ -1,0 +1,70 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: vagrant
+    username: vagrant
+    # password: vagrant (hashed with sha512)
+    password: '$6$rounds=4096$5CU3LEj/MQvbkfPb$LmKEF9pCfU8R.dA.GemgE/8GT6r9blge3grJvdsVTMFKyLEQwzEF3SGWqAzjawY/XHRpWj4fOiLBrRyxJhIRJ1'
+  early-commands:
+    - systemctl stop ssh.service
+    - systemctl stop ssh.socket
+  ssh:
+    install-server: yes
+    allow-pw: yes
+  storage:
+    layout:
+      name: direct
+    config:
+      - id: vda
+        type: disk
+        ptable: gpt
+        path: /dev/vda
+        grub_device: false
+      - id: vda-efi
+        type: partition
+        device: vda
+        size: 512M
+        flag: esp
+        grub_device: true
+      - id: vda-boot
+        type: partition
+        device: vda
+        size: 1G
+      - id: vda-root
+        type: partition
+        device: vda
+        size: -1
+      - id: efi-fs
+        type: format
+        fstype: fat32
+        volume: vda-efi
+      - id: boot-fs
+        type: format
+        fstype: ext4
+        volume: vda-boot
+      - id: root-fs
+        type: format
+        fstype: ext4
+        volume: vda-root
+      - id: efi-mount
+        type: mount
+        device: efi-fs
+        path: /boot/efi
+      - id: boot-mount
+        type: mount
+        device: boot-fs
+        path: /boot
+      - id: root-mount
+        type: mount
+        device: root-fs
+        path: /
+  late-commands:
+    - |
+      if [ -f /target/etc/netplan/00-installer-config.yaml ]; then
+        sed -i "s/dhcp4: true/&\n      dhcp-identifier: mac/" /target/etc/netplan/00-installer-config.yaml
+      fi
+    - echo 'vagrant ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/vagrant
+    - chmod 440 /target/etc/sudoers.d/vagrant
+    - sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8"/' /target/etc/default/grub
+    - curtin in-target --target=/target -- update-grub

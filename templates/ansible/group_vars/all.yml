@@ -1,0 +1,15 @@
+---
+# Central variable definitions — all sensitive values from environment variables.
+# Set these in your CI/CD secrets or export from config.env before running.
+
+# Artifact storage — set to your artifact server URL
+# artifact_url: "{{ lookup('env', 'ARTIFACT_URL') }}"
+# artifact_api_key: "{{ lookup('env', 'ARTIFACT_API_KEY') }}"
+
+# NFS mounts
+# nfs_server:      "{{ lookup('env', 'NFS_SERVER') }}"
+# nfs_data_server: "{{ lookup('env', 'NFS_DATA_SERVER') }}"
+
+# DNS
+# dns_servers:        "{{ lookup('env', 'DNS_SERVERS') }}"
+# dns_search_domains: "{{ lookup('env', 'DNS_SEARCH_DOMAINS') }}"

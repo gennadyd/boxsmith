@@ -1,0 +1,19 @@
+---
+
+# - name: Install kernel packages
+#   package:
+#     name: "{{ item }}"
+#     state: present
+#   with_items: "{{ kernel_packages }}"
+
+- name: Install kernel packages
+  package:
+    name: "{{ kernel_package }}"
+    state: present
+  loop: "{{ kernel_packages }}"
+  loop_control:
+    loop_var: kernel_package
+
+- name: Update grub
+  shell: grubby --set-default-index=0 && grubby --update-kernel=`/sbin/grubby --default-kernel` reboot --args="biosdevname=0 net.ifnames=0 "
+  when: ansible_distribution == "RedHat" and ansible_distribution_version == "9.6"

@@ -1,0 +1,15 @@
+---
+- name: Install kernel packages TC4
+  ansible.builtin.dnf:
+    name: "{{ my_item }}"
+    state: present
+    use_backend: dnf
+    disable_gpg_check: yes
+  loop: "{{ kernel_packages }}"
+  loop_control:
+    loop_var: my_item
+  vars:
+  when: ansible_distribution_version == "4.2"
+
+- name: Update grub
+  shell: grubby --set-default-index=0 && grubby --update-kernel=`/sbin/grubby --default-kernel` reboot --args="biosdevname=0 net.ifnames=0 "
