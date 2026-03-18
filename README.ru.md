@@ -183,27 +183,42 @@ cp config.example.env config.env
 
 ## Параметры
 
-| Параметр | По умолчанию | Значения | Описание |
-|----------|-------------|----------|----------|
-| `TYPE` | `org-golden` | `vendor-base` \| `org-base` \| `org-golden` | Тип собираемого бокса |
-| `OS` | `ubuntu` | `ubuntu` \| `rhel` | Семейство гостевой ОС |
-| `VERSION` | `24.04` | `24.04` \| `9.6` | Версия ОС |
-| `ENV` | `staging` | любой строчный идентификатор | Метка окружения, встроенная в имя бокса |
-| `UEFI` | `false` | `true` \| `false` | Загрузка через UEFI |
-| `FROM` | `iso` | см. ниже | Источник для vendor-base |
-| `SOURCE` | `local` | `local` \| `remote` | Откуда брать базовый бокс для org-base/org-golden |
-| `STORAGE` | — | `artifactory` \| `s3` | Удалённое хранилище (обязательно при `SOURCE=remote` или upload) |
+### Целевой тип
+
+| Параметр | По умолчанию | Описание |
+|----------|-------------|----------|
+| `TYPE` | `org-golden` | Что собирать: `vendor-base` · `org-base` · `org-golden` |
+| `OS` | `ubuntu` | Семейство гостевой ОС: `ubuntu` · `rhel` |
+| `VERSION` | `24.04` | Версия ОС: `24.04` · `9.6` |
+| `ENV` | `staging` | Метка окружения в имени бокса (любая строчная строка) |
+| `UEFI` | `false` | UEFI-загрузка: `true` · `false` |
+
+### Источник
+
+| Параметр | По умолчанию | Описание |
+|----------|-------------|----------|
+| `FROM` | `iso` | Источник для vendor-base — см. таблицу ниже |
+| `SOURCE` | `local` | Откуда брать базовый бокс для org-base/org-golden: `local` · `remote` |
+| `STORAGE` | — | Удалённый бэкенд (**обязательно** при `SOURCE=remote` или загрузке): `artifactory` · `s3` |
+
+### Рабочий процесс
+
+| Параметр | По умолчанию | Описание |
+|----------|-------------|----------|
+| `UPLOAD` | `false` | Авто-загрузка в `STORAGE` после успешной сборки: `true` · `false` |
+| `BOX` | — | Переопределить имя бокса для `test` / `ssh` / `upload` |
+| `FORMAT` | `short` | Формат вывода для `show-*-boxes`: `short` · `json` |
 
 ### `FROM=` — источник для vendor-base
 
-| Значение | Сборщик | Описание |
-|----------|---------|----------|
-| `iso` | iso-legacy/uefi | Сборка из ISO — автоскачивание по умолчанию (~30 мин) |
-| `/путь/к/файлу.iso` | iso-legacy/uefi | Сборка из локального ISO |
-| `https://…/file.iso` | iso-legacy/uefi | Сборка из ISO по URL |
-| `artifactory` | box-legacy/uefi | Скачать последний vendor-base из Artifactory (~3 мин) |
-| `s3` | box-legacy/uefi | Скачать последний vendor-base из S3 (~3 мин) |
-| `almalinux/9` | box-legacy/uefi | Скачать из Vagrant Cloud по slug (~3 мин) |
+| Значение | Сборщик | Время |
+|----------|---------|-------|
+| `iso` | iso-legacy / iso-uefi | ~30 мин — автоскачивание ISO по умолчанию |
+| `/путь/к/файлу.iso` | iso-legacy / iso-uefi | ~30 мин — локальный ISO |
+| `https://…/file.iso` | iso-legacy / iso-uefi | ~30 мин — ISO по URL |
+| `artifactory` | box-legacy / box-uefi | ~3 мин — последний vendor-base из Artifactory |
+| `s3` | box-legacy / box-uefi | ~3 мин — последний vendor-base из S3 |
+| `almalinux/9` | box-legacy / box-uefi | ~3 мин — Vagrant Cloud по slug |
 
 ---
 

@@ -183,27 +183,42 @@ cp config.example.env config.env
 
 ## פרמטרים
 
-| פרמטר | ברירת מחדל | ערכים | תיאור |
-|-------|-----------|-------|-------|
-| `TYPE` | `org-golden` | `vendor-base` \| `org-base` \| `org-golden` | סוג הקופסה לבנייה |
-| `OS` | `ubuntu` | `ubuntu` \| `rhel` | משפחת ה-OS האורח |
-| `VERSION` | `24.04` | `24.04` \| `9.6` | גרסת ה-OS |
-| `ENV` | `staging` | מזהה בלועזית כלשהו | תגית הסביבה המוטמעת בשם הקופסה |
-| `UEFI` | `false` | `true` \| `false` | אתחול UEFI |
-| `FROM` | `iso` | ראה להלן | מקור עבור vendor-base |
-| `SOURCE` | `local` | `local` \| `remote` | מאיפה לקחת את קופסת הבסיס |
-| `STORAGE` | — | `artifactory` \| `s3` | אחסון מרוחק |
+### יעד הבנייה
+
+| פרמטר | ברירת מחדל | תיאור |
+|-------|-----------|-------|
+| `TYPE` | `org-golden` | מה לבנות: `vendor-base` · `org-base` · `org-golden` |
+| `OS` | `ubuntu` | משפחת ה-OS האורח: `ubuntu` · `rhel` |
+| `VERSION` | `24.04` | גרסת ה-OS: `24.04` · `9.6` |
+| `ENV` | `staging` | תגית סביבה בשם הקופסה (כל מחרוזת באותיות קטנות) |
+| `UEFI` | `false` | אתחול UEFI: `true` · `false` |
+
+### מקור
+
+| פרמטר | ברירת מחדל | תיאור |
+|-------|-----------|-------|
+| `FROM` | `iso` | מקור עבור vendor-base — ראה טבלה למטה |
+| `SOURCE` | `local` | מאיפה לקחת את קופסת הבסיס: `local` · `remote` |
+| `STORAGE` | — | בקאנד מרוחק (**חובה** כש-`SOURCE=remote` או בהעלאה): `artifactory` · `s3` |
+
+### תהליך עבודה
+
+| פרמטר | ברירת מחדל | תיאור |
+|-------|-----------|-------|
+| `UPLOAD` | `false` | העלאה אוטומטית ל-`STORAGE` לאחר בנייה מוצלחת: `true` · `false` |
+| `BOX` | — | דריסת שם קובץ הקופסה עבור `test` / `ssh` / `upload` |
+| `FORMAT` | `short` | פורמט פלט עבור `show-*-boxes`: `short` · `json` |
 
 ### `FROM=` — מקורות vendor-base
 
-| ערך | בונה | תיאור |
-|-----|------|-------|
-| `iso` | iso-legacy/uefi | בנייה מ-ISO — הורדה אוטומטית (~30 דקות) |
-| `/path/to/file.iso` | iso-legacy/uefi | בנייה מקובץ ISO מקומי |
-| `https://…/file.iso` | iso-legacy/uefi | בנייה מ-ISO לפי URL |
-| `artifactory` | box-legacy/uefi | הורדת ה-vendor-base האחרון מ-Artifactory (~3 דקות) |
-| `s3` | box-legacy/uefi | הורדת ה-vendor-base האחרון מ-S3 (~3 דקות) |
-| `almalinux/9` | box-legacy/uefi | הורדה מ-Vagrant Cloud לפי slug (~3 דקות) |
+| ערך | בונה | זמן |
+|-----|------|-----|
+| `iso` | iso-legacy / iso-uefi | ~30 דקות — הורדת ISO אוטומטית |
+| `/path/to/file.iso` | iso-legacy / iso-uefi | ~30 דקות — קובץ ISO מקומי |
+| `https://…/file.iso` | iso-legacy / iso-uefi | ~30 דקות — ISO לפי URL |
+| `artifactory` | box-legacy / box-uefi | ~3 דקות — ה-vendor-base האחרון מ-Artifactory |
+| `s3` | box-legacy / box-uefi | ~3 דקות — ה-vendor-base האחרון מ-S3 |
+| `almalinux/9` | box-legacy / box-uefi | ~3 דקות — הורדה מ-Vagrant Cloud לפי slug |
 
 ---
 

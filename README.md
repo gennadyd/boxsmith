@@ -185,30 +185,42 @@ cp config.example.env config.env
 
 ## Parameters
 
-| Parameter | Default | Values | Description |
-|-----------|---------|--------|-------------|
-| `TYPE` | `org-golden` | `vendor-base` \| `org-base` \| `org-golden` | Box type to build |
-| `OS` | `ubuntu` | `ubuntu` \| `rhel` | Guest OS family |
-| `VERSION` | `24.04` | `24.04` \| `9.6` | OS version |
-| `ENV` | `staging` | any lowercase identifier | Environment tag embedded in box name |
-| `UEFI` | `false` | `true` \| `false` | UEFI boot |
-| `FROM` | `iso` | see below | vendor-base source |
-| `SOURCE` | `local` | `local` \| `remote` | Where to get the base box for org-base/org-golden |
-| `STORAGE` | — | `artifactory` \| `s3` | Remote storage (required when `SOURCE=remote` or uploading) |
-| `BOX` | — | filename | Override box filename for `test`/`ssh`/`upload` |
-| `UPLOAD` | `false` | `true` \| `false` | Auto-upload to `STORAGE` after a successful build |
-| `FORMAT` | `short` | `short` \| `json` | Output format for `show-*-boxes` |
+### Build target
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `TYPE` | `org-golden` | What to build: `vendor-base` · `org-base` · `org-golden` |
+| `OS` | `ubuntu` | Guest OS family: `ubuntu` · `rhel` |
+| `VERSION` | `24.04` | OS version: `24.04` · `9.6` |
+| `ENV` | `staging` | Environment tag embedded in the box name (any lowercase string) |
+| `UEFI` | `false` | Enable UEFI boot: `true` · `false` |
+
+### Source
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `FROM` | `iso` | vendor-base source — see table below |
+| `SOURCE` | `local` | Where to pull the base box for org-base/org-golden: `local` · `remote` |
+| `STORAGE` | — | Remote backend (**required** when `SOURCE=remote` or uploading): `artifactory` · `s3` |
+
+### Workflow
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `UPLOAD` | `false` | Auto-upload to `STORAGE` after a successful build: `true` · `false` |
+| `BOX` | — | Override box filename for `test` / `ssh` / `upload` |
+| `FORMAT` | `short` | Output format for `show-*-boxes`: `short` · `json` |
 
 ### `FROM=` — vendor-base source
 
-| Value | Builder | Description |
-|-------|---------|-------------|
-| `iso` | iso-legacy/uefi | Build from ISO — auto-download by OS defaults (~30 min) |
-| `/path/to/file.iso` | iso-legacy/uefi | Build from local ISO file |
-| `https://…/file.iso` | iso-legacy/uefi | Build from ISO URL |
-| `artifactory` | box-legacy/uefi | Fetch latest vendor-base box from Artifactory (~3 min) |
-| `s3` | box-legacy/uefi | Fetch latest vendor-base box from S3 (~3 min) |
-| `almalinux/9` | box-legacy/uefi | Pull from Vagrant Cloud by slug (~3 min) |
+| Value | Builder | Time |
+|-------|---------|------|
+| `iso` | iso-legacy / iso-uefi | ~30 min — auto-download ISO by OS defaults |
+| `/path/to/file.iso` | iso-legacy / iso-uefi | ~30 min — use local ISO file |
+| `https://…/file.iso` | iso-legacy / iso-uefi | ~30 min — download ISO from URL |
+| `artifactory` | box-legacy / box-uefi | ~3 min — latest vendor-base from Artifactory |
+| `s3` | box-legacy / box-uefi | ~3 min — latest vendor-base from S3 |
+| `almalinux/9` | box-legacy / box-uefi | ~3 min — pull from Vagrant Cloud by slug |
 
 ---
 
