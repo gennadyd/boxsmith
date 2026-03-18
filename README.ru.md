@@ -54,13 +54,6 @@ sudo systemctl enable --now docker
 sudo usermod -aG docker $USER
 ```
 
-Проверьте доступность `/dev/kvm` из Docker:
-
-```bash
-ls -l /dev/kvm
-docker run --rm --device /dev/kvm alpine ls /dev/kvm
-```
-
 ### 2. libvirt + KVM
 
 Требуется на хосте для управления сетями и пулами хранилищ VM:
@@ -82,6 +75,13 @@ sudo systemctl enable --now libvirtd
 ```bash
 kvm-ok             # Ubuntu (пакет cpu-checker)
 virt-host-validate
+```
+
+Проверьте доступность `/dev/kvm` из Docker:
+
+```bash
+ls -l /dev/kvm
+docker run --rm --device /dev/kvm alpine ls /dev/kvm
 ```
 
 ### 3. Группы пользователя

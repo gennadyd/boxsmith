@@ -54,13 +54,6 @@ sudo systemctl enable --now docker
 sudo usermod -aG docker $USER
 ```
 
-אמתו שגישה ל-`/dev/kvm` זמינה מ-Docker:
-
-```bash
-ls -l /dev/kvm
-docker run --rm --device /dev/kvm alpine ls /dev/kvm
-```
-
 ### 2. libvirt + KVM
 
 נדרש על המארח לניהול רשתות ובריכות אחסון:
@@ -82,6 +75,13 @@ sudo systemctl enable --now libvirtd
 ```bash
 kvm-ok             # Ubuntu (חבילת cpu-checker)
 virt-host-validate
+```
+
+אמתו שגישה ל-`/dev/kvm` זמינה מ-Docker:
+
+```bash
+ls -l /dev/kvm
+docker run --rm --device /dev/kvm alpine ls /dev/kvm
 ```
 
 ### 3. קבוצות משתמש

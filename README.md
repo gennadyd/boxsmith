@@ -53,13 +53,6 @@ sudo systemctl enable --now docker
 sudo usermod -aG docker $USER
 ```
 
-Verify `/dev/kvm` is accessible from Docker:
-
-```bash
-ls -l /dev/kvm          # must exist
-docker run --rm --device /dev/kvm alpine ls /dev/kvm
-```
-
 ### 2. libvirt + KVM
 
 Required on the host to manage VM networks and storage pools:
@@ -81,6 +74,13 @@ Verify KVM acceleration is available:
 ```bash
 kvm-ok          # Ubuntu (cpu-checker package)
 virt-host-validate
+```
+
+Verify `/dev/kvm` is accessible from Docker:
+
+```bash
+ls -l /dev/kvm          # must exist
+docker run --rm --device /dev/kvm alpine ls /dev/kvm
 ```
 
 ### 3. User groups
