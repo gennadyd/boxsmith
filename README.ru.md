@@ -325,18 +325,20 @@ make clean          # оба пункта выше + сброс .vagrant.d/
 
 ### Добавление новой ОС
 
-`make add-new-os` создаёт все необходимые файлы, копируя шаблон существующей (донорской) ОС
-и заменяя имя/версию ОС по всему дереву:
+`make `make add-new-os` создаёт все необходимые файлы, копируя шаблон существующей (донорской) ОС
+и заменяя имя/версию ОС по всему дереву.
+
+> **Важно:** донор должен быть из той же **семьи** — шаблоны cloud-init и kickstart несовместимы.
 
 ```bash
-# Создать шаблоны на основе существующего (например, rhel-9.6 как донор)
-make add-new-os OS=debian VERSION=12 FROM=rhel-9.6
+# Семья Debian/Ubuntu (cloud-init) — донор должен быть из той же группы
+make add-new-os OS=debian VERSION=12 FROM=ubuntu-24.04
 
-# Сначала запустить dry-run — показать, что будет создано, без записи
-make add-new-os OS=debian VERSION=12 FROM=rhel-9.6 DRY_RUN=1
-
-# Если у новой ОС другой префикс в ansible vars
+# Семья RHEL (kickstart) — донор из той же группы
 make add-new-os OS=almalinux VERSION=9 FROM=rhel-9.6 ANSIBLE_NAME=redhat
+
+# Dry-run: показать, что будет создано, без записи
+make add-new-os OS=debian VERSION=12 FROM=ubuntu-24.04 DRY_RUN=1
 ```
 
 Файлы, создаваемые командой `add-new-os`:

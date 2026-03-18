@@ -323,17 +323,19 @@ make clean          # שניהם + איפוס .vagrant.d/
 ### הוספת מערכת הפעלה חדשה
 
 `make add-new-os` יוצר את כל הקבצים הנדרשים על ידי העתקת תבנית OS קיים (תורם)
-והחלפת שם/גרסת ה-OS לאורך כל העץ:
+והחלפת שם/גרסת ה-OS לאורך כל העץ.
+
+> **חשוב:** השתמשו בתורם מאותה **משפחה** — תבניות cloud-init ו-kickstart אינן תואמות.
 
 ```bash
-# יצירת תבניות על בסיס תבנית קיימת (למשל rhel-9.6 כתורם)
-make add-new-os OS=debian VERSION=12 FROM=rhel-9.6
+# משפחת Debian/Ubuntu (cloud-init) — התורם חייב להיות מאותה קבוצה
+make add-new-os OS=debian VERSION=12 FROM=ubuntu-24.04
 
-# dry-run קודם — הדפסת מה שייווצר ללא כתיבה
-make add-new-os OS=debian VERSION=12 FROM=rhel-9.6 DRY_RUN=1
-
-# אם ל-OS החדש יש קידומת שונה ב-ansible vars
+# משפחת RHEL (kickstart) — התורם מאותה קבוצה
 make add-new-os OS=almalinux VERSION=9 FROM=rhel-9.6 ANSIBLE_NAME=redhat
+
+# Dry-run: הצגת מה ייווצר ללא כתיבה
+make add-new-os OS=debian VERSION=12 FROM=ubuntu-24.04 DRY_RUN=1
 ```
 
 קבצים שנוצרים על ידי `add-new-os`:

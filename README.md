@@ -377,17 +377,19 @@ make clean
 ### Adding a new OS
 
 `make add-new-os` scaffolds all required files by copying an existing (donor) OS
-template and substituting the OS name / version strings throughout:
+template and substituting the OS name / version strings throughout.
+
+> **Important:** use a donor from the **same family** — cloud-init and kickstart templates are not interchangeable.
 
 ```bash
-# Scaffold based on an existing template (e.g. rhel-9.6 as donor)
-make add-new-os OS=debian VERSION=12 FROM=rhel-9.6
+# Debian/Ubuntu family (cloud-init) — donor must be another cloud-init OS
+make add-new-os OS=debian VERSION=12 FROM=ubuntu-24.04
 
-# Dry-run first — print what would be created without writing
-make add-new-os OS=debian VERSION=12 FROM=rhel-9.6 DRY_RUN=1
-
-# If the new OS uses a different ansible vars prefix
+# RHEL family (kickstart) — donor must be another kickstart OS
 make add-new-os OS=almalinux VERSION=9 FROM=rhel-9.6 ANSIBLE_NAME=redhat
+
+# Dry-run: print what would be created without writing anything
+make add-new-os OS=debian VERSION=12 FROM=ubuntu-24.04 DRY_RUN=1
 ```
 
 Files created by `add-new-os`:
