@@ -162,7 +162,6 @@ make ssh  TYPE=org-golden OS=ubuntu VERSION=24.04
 
 ---
 
-## Configuration
 ## Docker Image
 
 The `PACKER_IMAGE` variable controls the image name. Set it in `config.env`
@@ -196,6 +195,7 @@ value can run builds without rebuilding the image locally.
 
 ---
 
+## Configuration
 
 Copy and edit `config.env` (never commit it):
 

@@ -160,7 +160,6 @@ make ssh  TYPE=org-golden OS=ubuntu VERSION=24.04
 
 ---
 
-## קונפיגורציה
 ## תמונת Docker
 
 המשתנה `PACKER_IMAGE` קובע את שם התמונה. הגדירו אותו ב-`config.env`
@@ -195,6 +194,7 @@ make docker-push
 
 ---
 
+## קונפיגורציה
 
 העתק וערוך את `config.env` (לא לקומיט):
 

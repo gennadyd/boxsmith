@@ -160,7 +160,6 @@ make ssh  TYPE=org-golden OS=ubuntu VERSION=24.04
 
 ---
 
-## Конфигурация
 ## Docker-образ
 
 Переменная `PACKER_IMAGE` задаёт имя образа. Пропишите её в `config.env`
@@ -194,6 +193,7 @@ make docker-push
 
 ---
 
+## Конфигурация
 
 Скопируй и отредактируй `config.env` (не коммить его):
 
