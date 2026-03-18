@@ -37,18 +37,98 @@ ISO / Vagrant Cloud / удалённый бокс
 
 ## Требования
 
-- Docker с доступом к `/dev/kvm`
-- libvirt + KVM на хосте
-- Пользователь в группах `libvirt` и `kvm`
-- Python 3.10+
-- AWS CLI v2 — для `STORAGE=s3`
-- JFrog CLI — для `STORAGE=artifactory`
+### 1. Docker
+
+Вся инструментальная цепочка (Packer/Vagrant/QEMU) работает внутри Docker:
+
+```bash
+# Ubuntu/Debian
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+```
+
+```bash
+# RHEL/CentOS
+sudo dnf install -y docker-ce docker-ce-cli containerd.io
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+```
+
+Проверьте доступность `/dev/kvm` из Docker:
+
+```bash
+ls -l /dev/kvm
+docker run --rm --device /dev/kvm alpine ls /dev/kvm
+```
+
+### 2. libvirt + KVM
+
+Требуется на хосте для управления сетями и пулами хранилищ VM:
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst
+sudo systemctl enable --now libvirtd
+```
+
+```bash
+# RHEL/CentOS
+sudo dnf install -y qemu-kvm libvirt libvirt-client virt-install
+sudo systemctl enable --now libvirtd
+```
+
+Проверка доступности KVM:
+
+```bash
+kvm-ok             # Ubuntu (пакет cpu-checker)
+virt-host-validate
+```
+
+### 3. Группы пользователя
+
+Добавьте пользователя в группы `libvirt` и `kvm`, затем перелогиньтесь:
 
 ```bash
 sudo usermod -aG libvirt,kvm $USER
+newgrp libvirt   # применить без перелогина (только текущий shell)
 ```
 
-Для UEFI-сборок на хосте должен быть установлен OVMF:
+### 4. Python 3.10+
+
+Используется вспомогательными скриптами (`make show-boxes`, `make add-new-os` и др.):
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install -y python3 python3-pip
+
+# RHEL/CentOS
+sudo dnf install -y python3 python3-pip
+```
+
+Проверка версии:
+
+```bash
+python3 --version   # должно быть >= 3.10
+```
+
+### 5. AWS CLI v2 _(опционально — для `STORAGE=s3`)_
+
+```bash
+curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+unzip /tmp/awscliv2.zip -d /tmp/aws-install
+sudo /tmp/aws-install/aws/install
+aws --version
+```
+
+### 6. JFrog CLI _(опционально — для `STORAGE=artifactory`)_
+
+```bash
+curl -fsSL https://releases.jfrog.io/artifactory/jfrog-cli/v2-jf/[RELEASE]/jfrog-cli-linux-amd64/jf \
+  -o /usr/local/bin/jf && chmod +x /usr/local/bin/jf
+jf --version
+```
+
+### 7. OVMF _(для UEFI-сборок)_
 
 ```bash
 # Ubuntu/Debian

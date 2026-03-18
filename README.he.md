@@ -37,18 +37,98 @@ ISO / Vagrant Cloud / קופסה מרחוק
 
 ## דרישות מקדימות
 
-- Docker עם גישה ל-`/dev/kvm`
-- libvirt + KVM על המארח
-- משתמש בקבוצות `libvirt` ו-`kvm`
-- Python 3.10+
-- AWS CLI v2 — נדרש עבור `STORAGE=s3`
-- JFrog CLI — נדרש עבור `STORAGE=artifactory`
+### 1. Docker
+
+כל שרשרת הכלים (Packer/Vagrant/QEMU) רצה בתוך Docker:
+
+```bash
+# Ubuntu/Debian
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+```
+
+```bash
+# RHEL/CentOS
+sudo dnf install -y docker-ce docker-ce-cli containerd.io
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+```
+
+אמתו שגישה ל-`/dev/kvm` זמינה מ-Docker:
+
+```bash
+ls -l /dev/kvm
+docker run --rm --device /dev/kvm alpine ls /dev/kvm
+```
+
+### 2. libvirt + KVM
+
+נדרש על המארח לניהול רשתות ובריכות אחסון:
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst
+sudo systemctl enable --now libvirtd
+```
+
+```bash
+# RHEL/CentOS
+sudo dnf install -y qemu-kvm libvirt libvirt-client virt-install
+sudo systemctl enable --now libvirtd
+```
+
+אימות זמינות KVM:
+
+```bash
+kvm-ok             # Ubuntu (חבילת cpu-checker)
+virt-host-validate
+```
+
+### 3. קבוצות משתמש
+
+הוסיפו את המשתמש לקבוצות `libvirt` ו-`kvm`, ואז התחברו מחדש:
 
 ```bash
 sudo usermod -aG libvirt,kvm $USER
+newgrp libvirt   # החל ללא התנתקות (shell נוכחי בלבד)
 ```
 
-לבניות UEFI, יש להתקין OVMF על המארח:
+### 4. Python 3.10+
+
+נדרש לסקריפטי עזר (`make show-boxes`, `make add-new-os` וכו'):
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install -y python3 python3-pip
+
+# RHEL/CentOS
+sudo dnf install -y python3 python3-pip
+```
+
+אימות גרסה:
+
+```bash
+python3 --version   # חייב להיות >= 3.10
+```
+
+### 5. AWS CLI v2 _(אופציונלי — נדרש עבור `STORAGE=s3`)_
+
+```bash
+curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+unzip /tmp/awscliv2.zip -d /tmp/aws-install
+sudo /tmp/aws-install/aws/install
+aws --version
+```
+
+### 6. JFrog CLI _(אופציונלי — נדרש עבור `STORAGE=artifactory`)_
+
+```bash
+curl -fsSL https://releases.jfrog.io/artifactory/jfrog-cli/v2-jf/[RELEASE]/jfrog-cli-linux-amd64/jf \
+  -o /usr/local/bin/jf && chmod +x /usr/local/bin/jf
+jf --version
+```
+
+### 7. OVMF _(נדרש לבניות UEFI)_
 
 ```bash
 # Ubuntu/Debian
