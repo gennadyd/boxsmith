@@ -42,8 +42,10 @@ stale_volumes() {
 }
 
 stale_boxes() {
-    ls "${VAGRANT_DOT}/boxes/" 2>/dev/null \
-        | grep -E '^(smoke-|sshtest-)' || true
+    local box
+    for box in "${VAGRANT_DOT}/boxes/smoke-"* "${VAGRANT_DOT}/boxes/sshtest-"*; do
+        [[ -e "$box" ]] && basename "$box"
+    done
 }
 
 vagrant_tmp_size() {

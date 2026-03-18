@@ -44,7 +44,6 @@ fi
 IMG=$(readlink -e "$1")
 [[ "$?" -ne 0 ]] && error "'$1': No such image"
 
-IMG_DIR=$(dirname "$IMG")
 IMG_BASENAME=$(basename "$IMG")
 
 BOX=${2:-}
@@ -74,7 +73,7 @@ fi
 # ensure that it's moved back / removed again
 if [[ -n $(backing "$IMG") ]]; then
     echo "==> Image has backing image, copying image and rebasing ..."
-    trap "rm -rf $TMP_DIR" EXIT
+    trap 'rm -rf "$TMP_DIR"' EXIT
     cp "$IMG" "$TMP_IMG"
     rebase "$TMP_IMG"
 else
