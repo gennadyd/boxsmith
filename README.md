@@ -5,6 +5,8 @@ Everything runs inside Docker — no local Packer, Vagrant, or QEMU required.
 
 **Languages:** English | [Русский](README.ru.md) | [עברית](README.he.md)
 
+> **Disclaimer:** This project was built as a *vibe coding* experiment — to explore what AI assistance makes possible, while shipping something genuinely useful. Expect rough edges.
+
 ---
 
 ## Pipeline
