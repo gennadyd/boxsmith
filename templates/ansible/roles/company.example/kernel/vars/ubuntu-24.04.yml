@@ -8,4 +8,3 @@ kernel_packages:
   - "linux-headers-{{ kernel_name }}"
   - "linux-modules-{{ kernel_name }}"
   - "linux-modules-extra-{{ kernel_name }}"
-
