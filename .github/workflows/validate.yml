@@ -20,13 +20,10 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt-get update -qq && sudo apt-get install -y packer
 
-      - name: Install packer-plugin-qemu
+      - name: Install Packer plugins (qemu + vagrant)
         run: |
-          PLUGIN_VERSION=1.1.0
-          mkdir -p ~/.config/packer/plugins/github.com/hashicorp/qemu
-          wget -q -O /tmp/packer-plugin-qemu.zip \
-            "https://releases.hashicorp.com/packer-plugin-qemu/${PLUGIN_VERSION}/packer-plugin-qemu_${PLUGIN_VERSION}_linux_amd64.zip"
-          unzip -o /tmp/packer-plugin-qemu.zip -d ~/.config/packer/plugins/github.com/hashicorp/qemu
+          packer plugins install github.com/hashicorp/qemu
+          packer plugins install github.com/hashicorp/vagrant
 
       - name: Validate all Packer templates
         env:
