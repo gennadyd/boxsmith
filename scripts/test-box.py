@@ -152,10 +152,11 @@ run_or_die(
 
 # ── 3. Read metadata from VM ───────────────────────────────────────────────────
 stage("read /etc/box-release")
-rc = run(
+run_or_die(
     docker_run('-v', f'{vm_dir}:{vm_dir}', '-w', str(vm_dir))
     + ['vagrant', 'ssh', '--', '-t',
        'cat /etc/box-release 2>/dev/null || echo "(no /etc/box-release)"'],
+    label='vagrant ssh',
 )
 
 # ── 4. Destroy ─────────────────────────────────────────────────────────────────
